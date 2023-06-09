@@ -7,9 +7,9 @@
     # IP, gameserver flag endpoint and team token.
     # Otherwise you won't see any packets incoming.
     # And no flags scored whatsoever.
-    vulnbox_ip: 10.60.75.1
+    vulnbox_ip: 10.60.38.1
     gameserver_url: http://10.10.0.1:8080/flags
-    team_token: 2de912c0359c42eba415ca8cc4280d8a
+    team_token: d539367d28dd5b9b1bd8b647d6a8a44b
     number_of_teams: 128
     teams_format: "f'10.60.{i}.1'"
 
@@ -17,14 +17,14 @@
     system_protocol: ructf_http
 
     # Type here the interface that runs the WireGuard tunnel!
-    packmate_interface: enp0s8
+    packmate_interface: game
 
     # Check your Ubuntu version, this should less important
     # since it's only used to determine the correct repo url
     # in order to install Docker. In the actual vulnbox, Docker
     # should be already installed, thus Docker installation
     # will be skipped.
-    ubuntu_version: focal
+    ubuntu_version: jammy
 
     # You shouldn't edit past this comment.
     default_password: bd6e315bc19208813acb6a03ce4e1d7bb9f9f241410e6cd0a0e548359cd20271
