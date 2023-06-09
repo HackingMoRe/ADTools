@@ -1,0 +1,236 @@
+---
+- hosts: all
+  become: true
+  become_method: sudo
+  vars:
+    # CHANGE THESE!!!! This should reflect your actual VM
+    # IP, gameserver flag endpoint and team token.
+    # Otherwise you won't see any packets incoming.
+    # And no flags scored whatsoever.
+    vulnbox_ip: 10.60.75.1
+    gameserver_url: http://10.10.0.1:8080/flags
+    team_token: 2de912c0359c42eba415ca8cc4280d8a
+    number_of_teams: 128
+    teams_format: "f'10.60.{i}.1'"
+
+    # This should work as it is
+    system_protocol: ructf_http
+
+    # Type here the interface that runs the WireGuard tunnel!
+    packmate_interface: enp0s8
+
+    # Check your Ubuntu version, this should less important
+    # since it's only used to determine the correct repo url
+    # in order to install Docker. In the actual vulnbox, Docker
+    # should be already installed, thus Docker installation
+    # will be skipped.
+    ubuntu_version: focal
+
+    # You shouldn't edit past this comment.
+    default_password: bd6e315bc19208813acb6a03ce4e1d7bb9f9f241410e6cd0a0e548359cd20271
+    packmate_login: unimore
+    packmate_password: d77f280270e5ddb2a1f86b2f138097df8bc801a8d6c13f3137eda887678aa6ee
+    webhook_url: https://discordia.com/api/webhooks/97942970506/OQBu_VL-K-5gL3wpy_bmdTIsCb3oa7vBPHcWGV0aDxHrI23JXNrw
+    server_password: 5c33eb58b75c27432377de68d3ddb5fe350a3f3bfba413c59b91d7b17962cea7
+  tasks:
+    - name: install aptitude
+      apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+
+    # Needed for Ansible to work correctly.
+    - name: install dependencies
+      apt:
+        name:
+          - python3
+          - python3-pip
+
+    # This throws an error if Docker is not installed.
+    # Do not worry if it errors out. It's fine.
+    - name: check if Docker is installed
+      shell: command -v docker
+      register: docker_exists
+      ignore_errors: yes
+
+    - name: install Docker prerequisites
+      apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - virtualenv
+          - python3-setuptools
+        state: latest
+        update_cache: true
+      when: docker_exists is failed
+
+    - name: add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      when: docker_exists is failed
+
+    - name: add Docker Repository
+      apt_repository:
+        repo: "deb https://download.docker.com/linux/ubuntu {{ ubuntu_version }} stable"
+        state: present
+      when: docker_exists is failed
+
+    - name: update apt and install docker-ce
+      apt:
+        name:
+          - docker-ce
+          - docker-compose-plugin
+        state: latest
+        update_cache: true
+      when: docker_exists is failed
+
+    - name: change root password
+      user:
+        name: root
+        update_password: always
+        password: "{{ default_password |password_hash('sha512') }}"
+
+    - name: download S4DFarm
+      ansible.builtin.git:
+        repo: 'https://github.com/C4T-BuT-S4D/S4DFarm'
+        dest: '/root/ctffarm'
+        force: yes
+
+    - name: install custom config for S4DFarm
+      copy:
+        src: ./configs/ctffarm.config.py
+        dest: /root/ctffarm/server/app/config.py
+
+    - name: patch docker-compose to use 42069 port
+      copy:
+        src: ./configs/docker-compose.farm.yml
+        dest: /root/ctffarm/docker-compose.yml
+
+    - name: update gameserver IP address
+      ansible.builtin.lineinfile:
+        path: /root/ctffarm/server/app/config.py
+        search_string: "'SYSTEM_URL': '"
+        line: "    'SYSTEM_URL': '{{ gameserver_url }}',"
+
+    - name: update team token
+      ansible.builtin.lineinfile:
+        path: /root/ctffarm/server/app/config.py
+        search_string: "'SYSTEM_TOKEN': '"
+        line: "    'SYSTEM_TOKEN': '{{ team_token }}',"
+
+    - name: update server password
+      ansible.builtin.lineinfile:
+        path: /root/ctffarm/server/app/config.py
+        search_string: "'SERVER_PASSWORD': '"
+        line: "    'SERVER_PASSWORD': '{{ server_password }}',"
+
+    - name: update number of teams
+      ansible.builtin.lineinfile:
+        path: /root/ctffarm/server/app/config.py
+        search_string: "for i in range(0, 40)"
+        line: "        for i in range(0, {{ number_of_teams }} + 1)"
+
+    - name: update team teams_format
+      ansible.builtin.lineinfile:
+        path: /root/ctffarm/server/app/config.py
+        search_string: "f'Team #{i}': f'10.60.{i}.1'"
+        line: "        f'Team #{i}': {{ teams_format }}"
+
+    - name: update system system_protocol
+      ansible.builtin.lineinfile:
+        path: /root/ctffarm/server/app/config.py
+        search_string: "'SYSTEM_PROTOCOL': '"
+        line: "    'SYSTEM_PROTOCOL': '{{ system_protocol }}',"
+
+    - name: add 'denied' to rejected status list
+      ansible.builtin.lineinfile:
+        path: /root/ctffarm/server/app/protocols/ructf_http.py
+        search_string: "FlagStatus.REJECTED:"
+        line: "    FlagStatus.REJECTED: ['bad', 'wrong', 'expired', 'unknown', 'your own', 'denied',"
+
+    # This is needed for Ansible.
+    - name: install 'Docker SDK for Python'
+      pip:
+        name:
+          - docker
+          - docker-compose
+
+    - name: Update urllib3
+      pip:
+        name: urllib3==1.26.15
+
+    - name: run S4DFarm
+      community.docker.docker_compose:
+        project_src: '/root/ctffarm'
+        build: yes
+      register: output
+
+    - name: download packmate
+      ansible.builtin.git:
+        repo: 'https://gitlab.com/packmate/Packmate.git'
+        dest: '/root/packmate'
+        force: yes
+        recursive: yes
+        version: "7bc02dd91fdedac42164f572994d72e07ca33b34"
+
+    - name: copy template packmate docker-compose
+      copy:
+        src: ./configs/docker-compose.packmate.yml
+        dest: /root/packmate/docker-compose.yml
+
+    - name: install Packmate configuration
+      copy:
+        src: ./configs/packmate.template.env
+        dest: /root/packmate/.env
+
+    - name: add packmate local ip
+      ansible.builtin.lineinfile:
+        path: /root/packmate/.env
+        search_string: "PACKMATE_LOCAL_IP="
+        line: "PACKMATE_LOCAL_IP={{ vulnbox_ip }}"
+
+    - name: add packmate web password
+      ansible.builtin.lineinfile:
+        path: /root/packmate/.env
+        search_string: "PACKMATE_WEB_PASSWORD="
+        line: "PACKMATE_WEB_PASSWORD={{ packmate_password }}"
+
+    - name: add packmate login
+      ansible.builtin.lineinfile:
+        path: /root/packmate/.env
+        search_string: "PACKMATE_WEB_LOGIN="
+        line: "PACKMATE_WEB_LOGIN={{ packmate_login }}"
+
+    - name: add packmate interface
+      ansible.builtin.lineinfile:
+        path: /root/packmate/.env
+        search_string: "PACKMATE_INTERFACE="
+        line: "PACKMATE_INTERFACE={{ packmate_interface }}"
+
+    - name: run packmate
+      community.docker.docker_compose:
+        project_src: '/root/packmate'
+        build: yes
+
+    - name: copy services checker
+      copy:
+        src: ./check_containers.sh
+        dest: /usr/bin/check_containers.sh
+        # Ensure it's executable
+        mode: 0755
+
+    - name: check containers every minute
+      ansible.builtin.cron:
+        name: "check containers"
+        job: "check_containers.sh {{ webhook_url }}"
+
+    - name: copy firewall setup script
+      copy:
+        src: ./firewall.sh
+        dest: /usr/bin/firewall.sh
+        # Ensure it's executable
+        mode: 0755
