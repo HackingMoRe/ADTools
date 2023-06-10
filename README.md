@@ -22,7 +22,7 @@ so these scripts may not work well for every Attack/Defence CTF.
  - While inside of the vulnbox, take note of the interface that runs
    WireGuard.
  - **IMPORTANT:** edit `vulnbox_deploy.yml` to update the relevant variables.
- - On your local machine, type `ansible-playbook vulnbox_deploy.yml -i "vulnbox," -u root --extra-vars "ansible_user=root ansible_password=toor"`, 
+ - On your local machine, type `ansible-playbook vulnbox_deploy.yml -i "vulnbox," -u root --extra-vars "ansible_user=root ansible_password=<your_vulnbox_password>"`, 
    note that the comma after `vulnbox,` is not a typo and it is needed.
  - You can now `ssh@vulnbox` with the new SSH password.
  - On the vulnbox, launch `firewall.sh <port-service-1> <port-service-2> <port-service-3> <port-service4>`. When ready type `Y`.
