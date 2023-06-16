@@ -234,3 +234,10 @@
         dest: /usr/bin/firewall.sh
         # Ensure it's executable
         mode: 0755
+
+    - name: add SSH keys
+      ansible.posix.authorized_key:
+        exclusive: false
+        user: root
+        state: "present"
+        key: "{{ lookup('file', './ssh_keys') }}" 
