@@ -218,7 +218,7 @@
   # ------------------------------------------ Tulip Configuration -----------------------------------------------------
     - name: download tulip
       ansible.builtin.git:
-        repo: 'https://github.com/OpenAttackDefenseTools/tulip.git'
+        repo: 'https://github.com/HackingMoRe/tulip.git'
         dest: '/root/tulip'
         force: yes
         recursive: yes
