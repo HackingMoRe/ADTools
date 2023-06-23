@@ -215,7 +215,7 @@
       community.docker.docker_compose:
         project_src: '/root/packmate'
         build: yes
-  # ------------------------------------------ Tulip Configuration ------------------------------------------
+  # ------------------------------------------ Tulip Configuration -----------------------------------------------------
     - name: download tulip
       ansible.builtin.git:
         repo: 'https://github.com/OpenAttackDefenseTools/tulip.git'
@@ -263,7 +263,7 @@
       community.docker.docker_compose:
         project_src: '/root/tulip'
         build: yes
-  # ----------------------------------------------------------------------------------------------
+  # --------------------------------------------------------------------------------------------------------------------
 
     - name: copy services checker
       copy:
