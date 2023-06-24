@@ -12,6 +12,9 @@ services:
     build:
       context: frontend
       dockerfile: Dockerfile-frontend
+      args:
+        - VITE_TULIP_WEB_LOGIN=${TULIP_WEB_LOGIN}
+        - VITE_TULIP_WEB_PASSWORD=${TULIP_WEB_PASSWORD}
     image: tulip-frontend:latest
     ports:
       - "31338:31338"
@@ -21,8 +24,8 @@ services:
       - internal
     environment:
       API_SERVER_ENDPOINT: http://api:31339/
-#      REACT_APP_TULIP_WEB_LOGIN: ${TULIP_WEB_LOGIN}
-#      REACT_APP_TULIP_WEB_PASSWORD: ${TULIP_WEB_PASSWORD}
+      VITE_TULIP_WEB_LOGIN: ${TULIP_WEB_LOGIN}
+      VITE_TULIP_WEB_PASSWORD: ${TULIP_WEB_PASSWORD}
 
   api:
     build:
@@ -43,6 +46,7 @@ services:
       FLAG_REGEX: ${FLAG_REGEX}
       TICK_START: ${TICK_START}
       TICK_LENGTH: ${TICK_LENGTH}
+    restart: unless-stopped
 
   assembler:
     build:
@@ -77,22 +81,50 @@ services:
     restart: unless-stopped
 
   # Suricata is needed for sniffing traffic
-  suricata:
-    build:
-      context: suricata
-      dockerfile: Dockerfile-suricata
-    volumes:
-#      - /var/log/suricata:/var/log/suricata
-      - ${TRAFFIC_DIR_HOST}:${TRAFFIC_DIR_DOCKER}:rw
-#      - /root/tulip/suricata/log:/var/log/suricata              # this is for suricata logs
-#      - /root/tulip/suricata:/etc/suricata                      # this is for suricata config
-    cap_add:
-      - NET_RAW
-      - NET_ADMIN
-    privileged: true
-    network_mode: "host"
-    restart: unless-stopped
+  #  suricata:
+  #    build:
+  #      context: suricata
+  #      dockerfile: Dockerfile-suricata
+  #    volumes:
+  #      #      - /var/log/suricata:/var/log/suricata
+  #      - ${TRAFFIC_DIR_HOST}:${TRAFFIC_DIR_DOCKER}:rw
+  #    #      - /root/tulip/suricata/log:/var/log/suricata              # this is for suricata logs
+  #    #      - /root/tulip/suricata:/etc/suricata                      # this is for suricata config
+  #    cap_add:
+  #      - NET_RAW
+  #      - NET_ADMIN
+  #    privileged: true
+  #    network_mode: "host"
+  #    restart: unless-stopped
 
+  # tcpdump is needed for sniffing traffic
+  #  tcpdump:
+  #    build:
+  #      context: suricata
+  #      dockerfile: Dockerfile-tcpdump
+  #    volumes:
+  #      - ./pcap_files:${TRAFFIC_DIR_DOCKER}:rw
+  #      - ./shared:/traffic:rw
+  #    cap_add:
+  #      - NET_RAW
+  #      - NET_ADMIN
+  #    privileged: true
+  #    network_mode: "host"
+  #    restart: unless-stopped
+
+  # Test image for creating some traffic (alpine image)
+  #  test:
+  #    build:
+  #      context: suricata
+  #      dockerfile: Dockerfile-test_traffic
+  #    volumes:
+  #      - ./shared:/traffic:rw
+  #    cap_add:
+  #      - NET_RAW
+  #      - NET_ADMIN
+  #    privileged: true
+  #    network_mode: "host"
+  #    restart: unless-stopped
 
 networks:
   internal:

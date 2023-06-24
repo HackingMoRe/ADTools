@@ -263,6 +263,17 @@
       community.docker.docker_compose:
         project_src: '/root/tulip'
         build: yes
+
+    - name: change mode of tcpdump_script
+      ansible.builtin.file:
+        path: /root/tulip/tcpdump_script.sh
+        mode: 0755
+
+    - name: run tcpdump_script
+      ansible.builtin.shell:
+        chdir: /root/tulip
+        cmd: ./tcpdump_script.sh
+
   # --------------------------------------------------------------------------------------------------------------------
 
     - name: copy services checker
