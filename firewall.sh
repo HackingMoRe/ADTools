@@ -19,6 +19,8 @@ ufw allow $3
 ufw allow $4
 # packmate
 ufw allow 31337
+# tulip
+ufw allow 31338
 # CTFarm
 ufw allow 42069
 

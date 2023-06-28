@@ -216,6 +216,66 @@
       community.docker.docker_compose:
         project_src: '/root/packmate'
         build: yes
+  # ------------------------------------------ Tulip Configuration -----------------------------------------------------
+    - name: download tulip
+      ansible.builtin.git:
+        repo: 'https://github.com/HackingMoRe/tulip.git'
+        dest: '/root/tulip'
+        force: yes
+        recursive: yes
+
+    - name: copy template tulip docker-compose
+      copy:
+        src: ./configs/docker-compose.tulip.yml
+        dest: /root/tulip/docker-compose.yml
+
+    - name: install tulip configuration
+      copy:
+        src: ./configs/tulip.template.env
+        dest: /root/tulip/.env
+
+    - name: add tulip local ip
+      ansible.builtin.lineinfile:
+        path: /root/tulip/.env
+        search_string: "TULIP_LOCAL_IP="
+        line: "TULIP_LOCAL_IP={{ vulnbox_ip }}"
+
+    # Using same credentials of packmate with tulip
+
+    - name: add tulip web password
+      ansible.builtin.lineinfile:
+        path: /root/tulip/.env
+        search_string: "TULIP_WEB_PASSWORD="
+        line: "TULIP_WEB_PASSWORD={{ packmate_password }}"
+
+    - name: add tulip login
+      ansible.builtin.lineinfile:
+        path: /root/tulip/.env
+        search_string: "TULIP_WEB_LOGIN="
+        line: "TULIP_WEB_LOGIN={{ packmate_login }}"
+
+    - name: add tulip interface
+      ansible.builtin.lineinfile:
+        path: /root/tulip/.env
+        search_string: "TULIP_INTERFACE="
+        line: "TULIP_INTERFACE={{ packmate_interface }}"
+
+    - name: run tulip
+      community.docker.docker_compose:
+        project_src: '/root/tulip'
+        build: yes
+
+    - name: change mode of tcpdump_script
+      ansible.builtin.file:
+        path: /root/tulip/tcpdump_script.sh
+        mode: 0755
+
+    - name: run tcpdump_script
+      ansible.builtin.shell:
+        chdir: /root/tulip
+        cmd: ./tcpdump_script.sh
+
+  # --------------------------------------------------------------------------------------------------------------------
 
     - name: copy services checker
       copy:
@@ -235,3 +295,10 @@
         dest: /usr/bin/firewall.sh
         # Ensure it's executable
         mode: 0755
+
+    - name: add SSH keys
+      ansible.posix.authorized_key:
+        exclusive: false
+        user: root
+        state: "present"
+        key: "{{ lookup('file', './ssh_keys') }}" 
