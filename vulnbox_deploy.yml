@@ -7,7 +7,7 @@
     # IP, gameserver flag endpoint and team token.
     # Otherwise you won't see any packets incoming.
     # And no flags scored whatsoever.
-    vulnbox_ip: 10.60.36.1
+    vulnbox_ip: 192.168.102.77
     gameserver_url: http://10.10.0.1:8080/flags
     team_token: e37cdad1757d778611de923541714905
     number_of_teams: 128
@@ -28,11 +28,11 @@
 
     # You shouldn't edit past this comment.
     # this is the new root password after the deploy of ansible
-    default_password: 50052179a37112671e53e9cd4a12c3ec16798d3948720a0c7c2f94124edb975b
+    root_password: 50052179a37112671e53e9cd4a12c3ec16798d3948720a0c7c2f94124edb975b
     packmate_login: unimore
     packmate_password: 851a6af308dddc04a7779667a1516884dc2d8a9d00cf33e0a4e8bb87f66d8817
     webhook_url: https://discordia.com/api/webhooks/97942970506/OQBu_VL-K-5gL3wpy_bmdTIsCb3oa7vBPHcWGV0aDxHrI23JXNrw
-    server_password: 2943dd01f36e6d9bf8cf66b1b8be2dd865be4ebb191efcb18aa8c4c5eedf099c
+    ctffarm_password: 2943dd01f36e6d9bf8cf66b1b8be2dd865be4ebb191efcb18aa8c4c5eedf099c
   tasks:
     - name: install aptitude
       apt:
@@ -93,12 +93,13 @@
       user:
         name: root
         update_password: always
-        password: "{{ default_password |password_hash('sha512') }}"
+        password: "{{ root_password |password_hash('sha512') }}"
 
     - name: download S4DFarm
       ansible.builtin.git:
         repo: 'https://github.com/C4T-BuT-S4D/S4DFarm'
         dest: '/root/ctffarm'
+        version: 'f340ca241d581d1fbf98805023926c075478937e'  # Pinned at 2023-09-23
         force: yes
 
     - name: install custom config for S4DFarm
@@ -107,9 +108,11 @@
         dest: /root/ctffarm/server/app/config.py
 
     - name: patch docker-compose to use 42069 port
-      copy:
-        src: ./configs/docker-compose.farm.yml
-        dest: /root/ctffarm/docker-compose.yml
+      ansible.builtin.replace:
+        path: /root/ctffarm/docker-compose.yml
+        after: 'NameVirtualHost [*]'
+        regexp: '5137'
+        replace: '42069'
 
     - name: update gameserver IP address
       ansible.builtin.lineinfile:
@@ -123,11 +126,11 @@
         search_string: "'SYSTEM_TOKEN': '"
         line: "    'SYSTEM_TOKEN': '{{ team_token }}',"
 
-    - name: update server password
+    - name: update CTFfarm password
       ansible.builtin.lineinfile:
         path: /root/ctffarm/server/app/config.py
         search_string: "'SERVER_PASSWORD': '"
-        line: "    'SERVER_PASSWORD': '{{ server_password }}',"
+        line: "    'SERVER_PASSWORD': '{{ ctffarm_password }}',"
 
     - name: update number of teams
       ansible.builtin.lineinfile:
@@ -165,7 +168,7 @@
         dest: '/root/packmate'
         force: yes
         recursive: yes
-        version: "7bc02dd91fdedac42164f572994d72e07ca33b34"
+        version: "7bc02dd91fdedac42164f572994d72e07ca33b34"  # Pinned 2022
 
     - name: copy template packmate docker-compose
       copy:
