@@ -109,10 +109,16 @@
 
     - name: patch docker-compose to use 42069 port
       ansible.builtin.replace:
-        path: /root/ctffarm/docker-compose.yml
+        path: /root/ctffarm/compose.yml
         after: 'NameVirtualHost [*]'
         regexp: '5137'
         replace: '42069'
+
+    - name: Apply patch to multiple files under basedir
+      ansible.posix.patch:
+        src: ./patches/s4dfarm/01_pin_pnpm_version.patch
+        basedir: /root/ctffarm/
+        strip: 1
 
     - name: update gameserver IP address
       ansible.builtin.lineinfile:
