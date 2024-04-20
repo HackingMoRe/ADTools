@@ -29,11 +29,8 @@
 
     # You shouldn't edit past this comment.
     # this is the new root password after the deploy of ansible
-    root_password: 50052179a37112671e53e9cd4a12c3ec16798d3948720a0c7c2f94124edb975b
     packmate_login: unimore
-    packmate_password: 851a6af308dddc04a7779667a1516884dc2d8a9d00cf33e0a4e8bb87f66d8817
     webhook_url: https://discordia.com/api/webhooks/97942970506/OQBu_VL-K-5gL3wpy_bmdTIsCb3oa7vBPHcWGV0aDxHrI23JXNrw
-    ctffarm_password: 2943dd01f36e6d9bf8cf66b1b8be2dd865be4ebb191efcb18aa8c4c5eedf099c
   tasks:
     - name: install aptitude
       apt:
