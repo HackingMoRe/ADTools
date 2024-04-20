@@ -16,8 +16,9 @@
     # This should work as it is
     system_protocol: ructf_http
 
-    # Type here the interface that runs the WireGuard tunnel!
-    packmate_interface: game
+    # Type here the interface that runs the WireGuard tunnel
+    # (used by packmate to listen on packet and threesome)
+    game_interface: game
 
     # Check your Ubuntu version, this should less important
     # since it's only used to determine the correct repo url
@@ -110,7 +111,6 @@
     - name: patch docker-compose to use 42069 port
       ansible.builtin.replace:
         path: /root/ctffarm/compose.yml
-        after: 'NameVirtualHost [*]'
         regexp: '5137'
         replace: '42069'
 
@@ -208,14 +208,23 @@
       ansible.builtin.lineinfile:
         path: /root/packmate/.env
         search_string: "PACKMATE_INTERFACE="
-        line: "PACKMATE_INTERFACE={{ packmate_interface }}"
+        line: "PACKMATE_INTERFACE={{ game_interface }}"
 
     - name: run packmate
       community.docker.docker_compose_v2:
         project_src: '/root/packmate'
         build: 'always'
 
-  # --------------------------------------------------------------------------------------------------------------------
+  # --------------------------------------------------------------------------------------------------------------------  THREESOME
+    - name: Copy threesome
+      copy:
+        src: ./threesome/
+        dest: /root/threesome
+
+    - name: Setup threesome
+      command:  bash /root/threesome/setup.sh {{ game_interface }}
+
+  # -------------------------------------------------------------------------------------------------------------------- MISC
 
     - name: copy services checker
       copy:
