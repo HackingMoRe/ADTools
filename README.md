@@ -31,6 +31,5 @@ so these scripts may not work well for every Attack/Defence CTF.
   4. on your local machine, run `ansible-playbook vulnbox_deploy.yml -i "vulnbox," -u root --extra-vars "ansible_user=root ansible_password=<vulnbox password>" --extra-vars "@.env.json"` to deploy all the tools on the vulnbox.\
     Note that the comma after `vulnbox,` is not a typo and it is needed.
   5. connect to the vulnbox using the `root_password` in the `.env.json` file on your local machine;
-  6. on the vulnbox, launch `firewall.sh <port-service-1> <port-service-2> <port-service-3> <port-service4>`. When ready type `Y`;
-  7. you now have *S4D-Farm* running on port 42069, *packmate* on port 31337 and a cronjob that every minute checks if any container was shut down.
-  8. pwn all the things!
+  6. you now have *S4D-Farm* running on port 42069, *packmate* on port 31337 and a cronjob that every minute checks if any container was shut down.
+  7. pwn all the things!
