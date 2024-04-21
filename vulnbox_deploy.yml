@@ -18,18 +18,13 @@
     packmate_login: unimore
     webhook_url: https://discordia.com/api/webhooks/97942970506/OQBu_VL-K-5gL3wpy_bmdTIsCb3oa7vBPHcWGV0aDxHrI23JXNrw
   tasks:
-    - name: install aptitude
-      apt:
-        name: aptitude
-        state: latest
-        update_cache: true
-
     # Needed for Ansible to work correctly.
     - name: install dependencies
       apt:
         name:
           - python3
           - python3-pip
+        update_cache: true
 
     # This throws an error if Docker is not installed.
     # Do not worry if it errors out. It's fine.
