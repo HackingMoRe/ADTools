@@ -221,13 +221,6 @@
         name: "check containers"
         job: "check_containers.sh {{ webhook_url }}"
 
-    - name: copy firewall setup script
-      copy:
-        src: ./firewall.sh
-        dest: /usr/bin/firewall.sh
-        # Ensure it's executable
-        mode: 0755
-
     - name: add SSH keys
       ansible.posix.authorized_key:
         exclusive: false
