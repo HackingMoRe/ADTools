@@ -3,22 +3,8 @@
   become: true
   become_method: sudo
   vars:
-    # CHANGE THESE!!!! This should reflect your actual VM
-    # IP, gameserver flag endpoint and team token.
-    # Otherwise you won't see any packets incoming.
-    # And no flags scored whatsoever.
-    vulnbox_ip: 192.168.102.77
-    gameserver_url: http://10.10.0.1:8080/flags
-    team_token: e37cdad1757d778611de923541714905
-    number_of_teams: 128
-    teams_format: "f'10.60.{i}.1'"
-
     # This should work as it is
     system_protocol: ructf_http
-
-    # Type here the interface that runs the WireGuard tunnel
-    # (used by packmate to listen on packet and threesome)
-    game_interface: game
 
     # Check your Ubuntu version, this should less important
     # since it's only used to determine the correct repo url

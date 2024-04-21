@@ -15,18 +15,22 @@ so these scripts may not work well for every Attack/Defence CTF.
  - `sshpass`
 
 ## Deploy
- - `./hosts.sh <vulnbox-ip> <nop-ip>`
- - `ssh root@vulnbox`, type yes to the SSH Auth fingerprint.
-    This is needed to add the server SSH fingerprint to `.ssh/known_hosts`
-    (Ansible can't do that).
- - While inside of the vulnbox, take note of the interface that runs
-   WireGuard.
- - **IMPORTANT:** edit `vulnbox_deploy.yml` to update the relevant variables.
- - On your local machine, type `ansible-playbook vulnbox_deploy.yml -i "vulnbox," -u root --extra-vars "ansible_user=root ansible_password=<your_vulnbox_password>"`, 
-   note that the comma after `vulnbox,` is not a typo and it is needed.
- - You can now `ssh@vulnbox` with the new SSH password.
- - On the vulnbox, launch `firewall.sh <port-service-1> <port-service-2> <port-service-3> <port-service4>`. When ready type `Y`.
- - You now have *S4D-Farm* running on port 42069, *packmate* on port 31337
-   and a cronjob that every minute checks if any container was shut down.
- - ...
- - pwn all the things!
+  0. (optional): each team member should generate an SSH key pair and add their public key to the `ssh_keys` file
+      ```sh
+      # 1. generate a new SSH key pair without passphrase and save it in ~/.ssh/vulnbox_ed25519{,.pub}
+      ssh-keygen -t ed25519 -C "your name" -f ~/.ssh/vulnbox_ed25519 -N ""
+      # 2. print the public key
+      # add the output of this command to the ssh_keys file
+      cat ~/.ssh/vulnbox_ed25519.pub
+      ```
+  1. `sudo ./hosts.sh <vulnbox-ip [<nop-ip>]`: add the IP address of the vulnbox (and, optionally, the IP address of the NOP team) to your `/etc/hosts` file.\
+   This is required because Ansible will reference the vulnbox using the hostname `vulnbox`, not the IP address;
+  2. connect to the vulnbox and retrieve the name of the network interface that runs WireGuard.\
+  Typically, it should be `game` or something similar;
+  3. on your local machine, run `./gen_env.py` and provide the required information;
+  4. on your local machine, run `ansible-playbook vulnbox_deploy.yml -i "vulnbox," -u root --extra-vars "ansible_user=root ansible_password=<vulnbox password>" --extra-vars "@.env.json"` to deploy all the tools on the vulnbox.\
+    Note that the comma after `vulnbox,` is not a typo and it is needed.
+  5. connect to the vulnbox using the `root_password` in the `.env.json` file on your local machine;
+  6. on the vulnbox, launch `firewall.sh <port-service-1> <port-service-2> <port-service-3> <port-service4>`. When ready type `Y`;
+  7. you now have *S4D-Farm* running on port 42069, *packmate* on port 31337 and a cronjob that every minute checks if any container was shut down.
+  8. pwn all the things!
