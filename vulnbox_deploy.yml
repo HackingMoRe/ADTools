@@ -193,6 +193,20 @@
         project_src: '/root/packmate'
         build: 'always'
 
+
+
+    - name: copy packmate rm_old_packets.sh
+      copy:
+        src: ./configs/rm_old_packets.sh
+        dest: /root/packmate/rm_old_packets.sh
+        mode: 'u+rwx'
+
+    - name: Run rm_old_packets.sh every 10 minutes
+      ansible.builtin.cron:
+        name: "rm_old_packets"
+        minute: "*/10"
+        job: "/root/packmate/rm_old_packets.sh >> /root/packmate/rm_logs.txt 2>&1"
+
   # --------------------------------------------------------------------------------------------------------------------  THREESOME
     - name: Copy threesome
       copy:
