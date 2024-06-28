@@ -68,6 +68,7 @@
         update_cache: true
       when: docker_exists is failed
 
+  # --------------------------------------------------------------------------------------------------------------------  Kickstarter
     - name: install java
       apt:
         name:
@@ -75,21 +76,14 @@
         state: latest
         update_cache: true
 
-    # TODO: download latest Kickstart release
-    # - name: download Kickstarter latest release
-    #   ansible.builtin.git:
-    #     repo: 'https://github.com/HackingMoRe/KickStarter/releases/latest'
-    #     dest: '/root/kickstarter'
-
     - name: copy Kickstarter to vulnbox
       copy:
-        src: ./kickstarter/KickStarter-1.0.0-all.jar
+        src: ./KickStarter-1.0.0-all.jar
         dest: /root/Kickstarter.jar
 
-    # NOTE: remember to add contributors
     - name: copy Kickstarter config to vulnbox
       copy:
-        src: ./kickstarter/config.yml
+        src: ./configs/kickstarter-config.yml
         dest: /root/config.yml
 
     - name: launch Kickstarter jar
@@ -101,6 +95,7 @@
         update_password: always
         password: "{{ root_password |password_hash('sha512') }}"
 
+  # --------------------------------------------------------------------------------------------------------------------  S4DFarm
     - name: download S4DFarm
       ansible.builtin.git:
         repo: 'https://github.com/C4T-BuT-S4D/S4DFarm'
@@ -173,13 +168,19 @@
         build: 'always'
       register: output
 
+  # --------------------------------------------------------------------------------------------------------------------  Packmate
     - name: download packmate
       ansible.builtin.git:
         repo: 'https://gitlab.com/packmate/Packmate.git'
         dest: '/root/packmate'
         force: yes
         recursive: yes
-        version: "7bc02dd91fdedac42164f572994d72e07ca33b34"  # Pinned 2022
+        # version: "7bc02dd91fdedac42164f572994d72e07ca33b34"  # Pinned 2022
+
+    - name: copy saved packmate image to vulnbox
+      copy:
+        src: ./packmate.tar
+        dest: /root/packmate/packmate.tar
 
     - name: copy template packmate docker-compose
       copy:
@@ -215,12 +216,15 @@
         search_string: "PACKMATE_INTERFACE="
         line: "PACKMATE_INTERFACE={{ game_interface }}"
 
+    - name: load packmate docker saved image
+      community.docker.docker_image_load:
+        path: /root/packmate/packmate.tar
+      register: result
+    
     - name: run packmate
       community.docker.docker_compose_v2:
         project_src: '/root/packmate'
         build: 'always'
-
-
 
     - name: copy packmate rm_old_packets.sh
       copy:
