@@ -13,6 +13,7 @@ so these scripts may not work well for every Attack/Defence CTF.
  - Linux host (it can probably be launched also from Windows,
    but I didn't check)
  - `sshpass`
+ - Python module [`passlib`](https://pypi.org/project/passlib/)
 
 ## Deploy
   0. (optional): each team member should generate an SSH key pair and add their public key to the `ssh_keys` file
