@@ -68,27 +68,6 @@
         update_cache: true
       when: docker_exists is failed
 
-  # --------------------------------------------------------------------------------------------------------------------  Kickstarter
-    - name: install java
-      apt:
-        name:
-          - default-jre
-        state: latest
-        update_cache: true
-
-    - name: copy Kickstarter to vulnbox
-      copy:
-        src: ./KickStarter-1.0.0-all.jar
-        dest: /root/Kickstarter.jar
-
-    - name: copy Kickstarter config to vulnbox
-      copy:
-        src: ./configs/kickstarter-config.yml
-        dest: /root/config.yml
-
-    - name: launch Kickstarter jar
-      shell: java -jar /root/Kickstarter.jar
-
     - name: change root password
       user:
         name: root
