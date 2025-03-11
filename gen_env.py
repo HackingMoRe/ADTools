@@ -12,12 +12,14 @@ if os.path.isfile(ENV_FILE_PATH):
           file=sys.stderr)
     exit(1)
 
-
 try:
     vulnbox_ip = input('Enter the vulnbox IP: ')
-except ValueError:
-    print(f'ERROR: {vulnbox_ip} is not a valid IP address')
+
+    ipaddress.IPv4Address(vulnbox_ip)
+except ipaddress.AddressValueError:
+    print(f'ERROR: {vulnbox_ip} is not a valid IP address!')
     exit(1)
+
 gameserver_url = input('Enter gameserver URL for flag submission: ')
 if 'http://' not in gameserver_url:
     print(f'ERROR: {gameserver_url} is not a valid url')
