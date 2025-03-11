@@ -154,12 +154,7 @@
         dest: '/root/packmate'
         force: yes
         recursive: yes
-        # version: "7bc02dd91fdedac42164f572994d72e07ca33b34"  # Pinned 2022
-
-    - name: copy saved packmate image to vulnbox
-      copy:
-        src: ./packmate.tar
-        dest: /root/packmate/packmate.tar
+        version: "7bc02dd91fdedac42164f572994d72e07ca33b34"  # Pinned 2022
 
     - name: copy template packmate docker-compose
       copy:
@@ -194,11 +189,6 @@
         path: /root/packmate/.env
         search_string: "PACKMATE_INTERFACE="
         line: "PACKMATE_INTERFACE={{ game_interface }}"
-
-    - name: load packmate docker saved image
-      community.docker.docker_image_load:
-        path: /root/packmate/packmate.tar
-      register: result
     
     - name: run packmate
       community.docker.docker_compose_v2:
