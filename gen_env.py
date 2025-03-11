@@ -21,15 +21,10 @@ except ipaddress.AddressValueError:
     exit(1)
 
 gameserver_url = input('Enter gameserver URL for flag submission: ')
-if 'http://' not in gameserver_url:
+if not gameserver_url.startswith('http://'):
     print(f'ERROR: {gameserver_url} is not a valid url')
     exit(1)
-if ':8080' not in gameserver_url:
-    print(f'ERROR: {gameserver_url} does not contain a valid port')
-    exit(1)
-if not gameserver_url.endswith('/flag'):
-    print(f'ERROR: {gameserver_url} does not contain a valid endpoint')
-    exit(1)
+
 team_token = input('Enter the team token: ')
 number_of_teams = int(input('Enter the number of teams: '))
 team_ip_format = "f'" + \
