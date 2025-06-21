@@ -19,4 +19,4 @@ date '+%H:%m:%S'
 
 cd /root/packmate
 
-echo "$COMMAND" | docker compose run -T db psql -h localhost -p 65001 packmate packmate
+echo "$COMMAND" | docker compose run --remove-orphans -T db psql -h localhost -p 65001 packmate packmate
