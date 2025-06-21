@@ -189,12 +189,12 @@
         path: /root/packmate/.env
         search_string: "PACKMATE_INTERFACE="
         line: "PACKMATE_INTERFACE={{ game_interface }}"
-    
+
     - name: run packmate
       community.docker.docker_compose_v2:
         project_src: '/root/packmate'
         build: 'always'
-
+    
     - name: copy packmate rm_old_packets.sh
       copy:
         src: ./configs/rm_old_packets.sh
