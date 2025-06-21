@@ -201,13 +201,7 @@
         dest: /root/packmate/rm_old_packets.sh
         mode: 'u+rwx'
 
-    - name: Run rm_old_packets.sh every 10 minutes
-      ansible.builtin.cron:
-        name: "rm_old_packets"
-        minute: "*/10"
-        job: "/root/packmate/rm_old_packets.sh >> /root/packmate/rm_logs.txt 2>&1"
-
-  # --------------------------------------------------------------------------------------------------------------------  THREESOME
+  #--------------------------------------------------------------------------------------------------------------------  THREESOME
     - name: Copy threesome
       copy:
         src: ./threesome/
@@ -236,3 +230,48 @@
         user: root
         state: "present"
         key: "{{ lookup('file', './ssh_keys') }}"
+        
+
+#--------------------------------------------------------
+    - name: download flag_dashboard
+      ansible.builtin.git:
+        repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/flag_dashboard.git'
+        dest: '/root/flag_dashboard'
+        version: '6a9cc7abcebf2e1e125455414afe0f027b2c7e4e'
+        force: yes
+    - name: install flag_dashboard configuration
+      copy:
+        src: ./configs/flag_dashboard.template.env
+        dest: /root/flag_dashboard/.env
+
+    - name: add flag_dashboard secret key
+      ansible.builtin.lineinfile:
+        path: /root/flag_dashboard/.env
+        search_string: "APP_SECRET_KEY="
+        line: "APP_SECRET_KEY={{ flag_dashboard_key }}"
+    - name: add flag_dashboard password
+      ansible.builtin.lineinfile:
+        path: /root/flag_dashboard/.env
+        search_string: "PASSWORD="
+        line: "PASSWORD={{ flag_dashboard_password }}"
+    - name: add packmate password
+      ansible.builtin.lineinfile:
+        path: /root/flag_dashboard/.env
+        search_string: "PACKMATE_PASSWORD="
+        line: "PACKMATE_PASSWORD={{ packmate_password }}"
+
+#------------------------------------
+    - name: download wisscon
+      ansible.builtin.git:
+        repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/wisscon.git'
+        dest: '/root/wisscon'
+        version: '2d1bafb330f7a179f0ad11933cd423209f9bc87b'
+        force: yes
+
+
+    - name: download KickStarterPy.git
+      ansible.builtin.git:
+        repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/KickStarterPy.git'
+        dest: '/root/KickStarterPy'
+        version: '041e4fd62097c7f752f46209a7f32b44c6e61102'
+        force: yes
