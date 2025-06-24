@@ -1,0 +1,12 @@
+- name: download KickStarterPy.git
+  ansible.builtin.git:
+    repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/KickStarterPy.git'
+    dest: '/root/KickStarterPy'
+    version: '041e4fd62097c7f752f46209a7f32b44c6e61102'
+    force: yes
+    
+- name: Install Python dependencies from requirements.txt
+  ansible.builtin.pip:
+    requirements: /root/KickStarterPy/requirements.txt
+    extra_args: --break-system-packages
+  tags: pip

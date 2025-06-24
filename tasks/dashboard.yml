@@ -1,0 +1,57 @@
+- name: download flag_dashboard
+  ansible.builtin.git:
+    repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/flag_dashboard.git'
+    dest: '/root/flag_dashboard'
+    version: '34925bd71b5027755a166bec4ddb8e53184d666f'
+    force: yes
+    
+- name: install flag_dashboard configuration
+  copy:
+    src: ./configs/flag_dashboard.template.env
+    dest: /root/flag_dashboard/.env
+- name: Install Python dependencies from requirements.txt
+  ansible.builtin.pip:
+    requirements: /root/flag_dashboard/requirements.txt
+    extra_args: --break-system-packages
+  tags: pip
+
+- name: add vulnbox_ip
+  ansible.builtin.lineinfile:
+    path: /root/flag_dashboard/.env
+    search_string: "VULNBOX_IP="
+    line: "VULNBOX_IP={{ vulnbox_ip }}"
+
+- name: add flag_dashboard secret key
+  ansible.builtin.lineinfile:
+    path: /root/flag_dashboard/.env
+    search_string: "APP_SECRET_KEY="
+    line: "APP_SECRET_KEY={{ flag_dashboard_key }}"
+
+- name: add flag_dashboard password
+  ansible.builtin.lineinfile:
+    path: /root/flag_dashboard/.env
+    search_string: "PASSWORD="
+    line: "PASSWORD={{ flag_dashboard_password }}"
+
+- name: add s4dfarm api key
+  ansible.builtin.lineinfile:
+    path: /root/flag_dashboard/.env
+    search_string: "S4DFARM_PASSWORD="
+    line: "S4DFARM_PASSWORD={{ ctffarm_password }}"
+
+- name: add packmate password
+  ansible.builtin.lineinfile:
+    path: /root/flag_dashboard/.env
+    search_string: "PACKMATE_PASSWORD="
+    line: "PACKMATE_PASSWORD={{ packmate_password }}"
+
+- name: Ensure app.py is executable
+  ansible.builtin.file:
+    path: /root/flag_dashboard/app.py
+    mode: '0755'
+
+- name: Run app.py in background with nohup
+  ansible.builtin.shell: |
+    nohup python3 app.py > /dev/null 2>&1 &
+  args:
+    chdir: /root/flag_dashboard
