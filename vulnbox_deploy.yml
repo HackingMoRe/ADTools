@@ -1,277 +1,44 @@
 ---
 - hosts: all
-  become: true
-  become_method: sudo
+  become: false
   vars:
-    # This should work as it is
     system_protocol: ructf_http
-
-    # Check your Ubuntu version, this should less important
-    # since it's only used to determine the correct repo url
-    # in order to install Docker. In the actual vulnbox, Docker
-    # should be already installed, thus Docker installation
-    # will be skipped.
-    ubuntu_version: jammy
-
-    # You shouldn't edit past this comment.
-    # this is the new root password after the deploy of ansible
     packmate_login: unimore
-    webhook_url: https://discordia.com/api/webhooks/97942970506/OQBu_VL-K-5gL3wpy_bmdTIsCb3oa7vBPHcWGV0aDxHrI23JXNrw
+
+  pre_tasks:
+    - name: Set modules to default if not defined
+      set_fact:
+        modules: ["all"]
+      when: modules is not defined
+
+    - name: Fail if any module is invalid
+      fail:
+        msg: "Invalid module in {{ modules }}. Allowed: all, s4dfarm, packmate, dashboard, wisscon, kickstarterpy"
+      when: modules | difference(["all", "s4dfarm", "packmate", "dashboard", "wisscon", "kickstarterpy"]) | length > 0
+
   tasks:
-    # Needed for Ansible to work correctly.
-    - name: install dependencies
-      apt:
-        name:
-          - python3
-          - python3-pip
-        update_cache: true
 
-    # This throws an error if Docker is not installed.
-    # Do not worry if it errors out. It's fine.
-    - name: check if Docker is installed
-      shell: command -v docker
-      register: docker_exists
-      ignore_errors: yes
+    - name: Install base dependencies
+      import_tasks: tasks/common.yml
 
-    - name: install Docker prerequisites
-      apt:
-        pkg:
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - software-properties-common
-          - python3-pip
-          - virtualenv
-          - python3-setuptools
-        state: latest
-        update_cache: true
-      when: docker_exists is failed
+    - name: Include KickStarterPy tasks
+      import_tasks: tasks/kickstarterpy.yml
+      when: modules is defined and ("kickstarterpy" in modules or "all" in modules)
 
-    - name: add Docker GPG apt Key
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
-      when: docker_exists is failed
+    - name: Include S4DFarm tasks
+      import_tasks: tasks/s4dfarm.yml
+      when: modules is defined and ("s4dfarm" in modules or "all" in modules)
 
-    - name: add Docker Repository
-      apt_repository:
-        repo: "deb https://download.docker.com/linux/ubuntu {{ ubuntu_version }} stable"
-        state: present
-      when: docker_exists is failed
+    - name: Include Packmate tasks
+      import_tasks: tasks/packmate.yml
+      when: modules is defined and ("packmate" in modules or "all" in modules)
 
-    - name: update apt and install docker-ce
-      apt:
-        name:
-          - docker-ce
-          - docker-compose-plugin
-        state: latest
-        update_cache: true
-      when: docker_exists is failed
+    - name: Include Dashboard tasks
+      import_tasks: tasks/dashboard.yml
+      when: modules is defined and ("dashboard" in modules or "all" in modules)
 
-    - name: change root password
-      user:
-        name: root
-        update_password: always
-        password: "{{ root_password |password_hash('sha512') }}"
-
-  # --------------------------------------------------------------------------------------------------------------------  S4DFarm
-    - name: download S4DFarm
-      ansible.builtin.git:
-        repo: 'https://github.com/C4T-BuT-S4D/S4DFarm'
-        dest: '/root/ctffarm'
-        version: 'f340ca241d581d1fbf98805023926c075478937e'  # Pinned at 2023-09-23
-        force: yes
-
-    - name: install custom config for S4DFarm
-      copy:
-        src: ./configs/ctffarm.config.py
-        dest: /root/ctffarm/server/app/config.py
-
-    - name: patch docker-compose to use 42069 port
-      ansible.builtin.replace:
-        path: /root/ctffarm/compose.yml
-        regexp: '5137'
-        replace: '42069'
-
-    - name: Apply patch to multiple files under basedir
-      ansible.posix.patch:
-        src: ./patches/s4dfarm/01_pin_pnpm_version.patch
-        basedir: /root/ctffarm/
-        strip: 1
-
-    - name: update gameserver IP address
-      ansible.builtin.lineinfile:
-        path: /root/ctffarm/server/app/config.py
-        search_string: "'SYSTEM_URL': '"
-        line: "    'SYSTEM_URL': '{{ gameserver_url }}',"
-
-    - name: update team token
-      ansible.builtin.lineinfile:
-        path: /root/ctffarm/server/app/config.py
-        search_string: "'SYSTEM_TOKEN': '"
-        line: "    'SYSTEM_TOKEN': '{{ team_token }}',"
-
-    - name: update CTFfarm password
-      ansible.builtin.lineinfile:
-        path: /root/ctffarm/server/app/config.py
-        search_string: "'SERVER_PASSWORD': '"
-        line: "    'SERVER_PASSWORD': '{{ ctffarm_password }}',"
-
-    - name: update number of teams
-      ansible.builtin.lineinfile:
-        path: /root/ctffarm/server/app/config.py
-        search_string: "for i in range(0, 40)"
-        line: "        for i in range(0, {{ number_of_teams }} + 1)"
-
-    - name: update team teams_format
-      ansible.builtin.lineinfile:
-        path: /root/ctffarm/server/app/config.py
-        search_string: "f'Team #{i}': f'10.60.{i}.1'"
-        line: "        f'Team #{i}': {{ teams_format }}"
-
-    - name: update system system_protocol
-      ansible.builtin.lineinfile:
-        path: /root/ctffarm/server/app/config.py
-        search_string: "'SYSTEM_PROTOCOL': '"
-        line: "    'SYSTEM_PROTOCOL': '{{ system_protocol }}',"
-
-    - name: add 'denied' to rejected status list
-      ansible.builtin.lineinfile:
-        path: /root/ctffarm/server/app/protocols/ructf_http.py
-        search_string: "FlagStatus.REJECTED:"
-        line: "    FlagStatus.REJECTED: ['bad', 'wrong', 'expired', 'unknown', 'your own', 'denied',"
-
-    - name: run S4DFarm
-      community.docker.docker_compose_v2:
-        project_src: '/root/ctffarm'
-        build: 'always'
-      register: output
-
-  # --------------------------------------------------------------------------------------------------------------------  Packmate
-    - name: download packmate
-      ansible.builtin.git:
-        repo: 'https://gitlab.com/packmate/Packmate.git'
-        dest: '/root/packmate'
-        force: yes
-        recursive: yes
-        version: "7bc02dd91fdedac42164f572994d72e07ca33b34"  # Pinned 2022
-
-    - name: copy template packmate docker-compose
-      copy:
-        src: ./configs/docker-compose.packmate.yml
-        dest: /root/packmate/docker-compose.yml
-
-    - name: install Packmate configuration
-      copy:
-        src: ./configs/packmate.template.env
-        dest: /root/packmate/.env
-
-    - name: add packmate local ip
-      ansible.builtin.lineinfile:
-        path: /root/packmate/.env
-        search_string: "PACKMATE_LOCAL_IP="
-        line: "PACKMATE_LOCAL_IP={{ vulnbox_ip }}"
-
-    - name: add packmate web password
-      ansible.builtin.lineinfile:
-        path: /root/packmate/.env
-        search_string: "PACKMATE_WEB_PASSWORD="
-        line: "PACKMATE_WEB_PASSWORD={{ packmate_password }}"
-
-    - name: add packmate login
-      ansible.builtin.lineinfile:
-        path: /root/packmate/.env
-        search_string: "PACKMATE_WEB_LOGIN="
-        line: "PACKMATE_WEB_LOGIN={{ packmate_login }}"
-
-    - name: add packmate interface
-      ansible.builtin.lineinfile:
-        path: /root/packmate/.env
-        search_string: "PACKMATE_INTERFACE="
-        line: "PACKMATE_INTERFACE={{ game_interface }}"
-
-    - name: run packmate
-      community.docker.docker_compose_v2:
-        project_src: '/root/packmate'
-        build: 'always'
-    
-    - name: copy packmate rm_old_packets.sh
-      copy:
-        src: ./configs/rm_old_packets.sh
-        dest: /root/packmate/rm_old_packets.sh
-        mode: 'u+rwx'
-
-  #--------------------------------------------------------------------------------------------------------------------  THREESOME
-    - name: Copy threesome
-      copy:
-        src: ./threesome/
-        dest: /root/threesome
-
-    - name: Setup threesome
-      command:  bash /root/threesome/setup.sh {{ game_interface }}
-
-  # -------------------------------------------------------------------------------------------------------------------- MISC
-
-    - name: copy services checker
-      copy:
-        src: ./check_containers.sh
-        dest: /usr/bin/check_containers.sh
-        # Ensure it's executable
-        mode: 0755
-
-    - name: check containers every minute
-      ansible.builtin.cron:
-        name: "check containers"
-        job: "check_containers.sh {{ webhook_url }}"
-
-    - name: add SSH keys
-      ansible.posix.authorized_key:
-        exclusive: false
-        user: root
-        state: "present"
-        key: "{{ lookup('file', './ssh_keys') }}"
-        
-
-#--------------------------------------------------------
-    - name: download flag_dashboard
-      ansible.builtin.git:
-        repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/flag_dashboard.git'
-        dest: '/root/flag_dashboard'
-        version: '6a9cc7abcebf2e1e125455414afe0f027b2c7e4e'
-        force: yes
-    - name: install flag_dashboard configuration
-      copy:
-        src: ./configs/flag_dashboard.template.env
-        dest: /root/flag_dashboard/.env
-
-    - name: add flag_dashboard secret key
-      ansible.builtin.lineinfile:
-        path: /root/flag_dashboard/.env
-        search_string: "APP_SECRET_KEY="
-        line: "APP_SECRET_KEY={{ flag_dashboard_key }}"
-    - name: add flag_dashboard password
-      ansible.builtin.lineinfile:
-        path: /root/flag_dashboard/.env
-        search_string: "PASSWORD="
-        line: "PASSWORD={{ flag_dashboard_password }}"
-    - name: add packmate password
-      ansible.builtin.lineinfile:
-        path: /root/flag_dashboard/.env
-        search_string: "PACKMATE_PASSWORD="
-        line: "PACKMATE_PASSWORD={{ packmate_password }}"
-
-#------------------------------------
-    - name: download wisscon
-      ansible.builtin.git:
-        repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/wisscon.git'
-        dest: '/root/wisscon'
-        version: '2d1bafb330f7a179f0ad11933cd423209f9bc87b'
-        force: yes
+    - name: Include Wisscon tasks
+      import_tasks: tasks/wisscon.yml
+      when: modules is defined and ("wisscon" in modules or "all" in modules)
 
 
-    - name: download KickStarterPy.git
-      ansible.builtin.git:
-        repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/KickStarterPy.git'
-        dest: '/root/KickStarterPy'
-        version: '041e4fd62097c7f752f46209a7f32b44c6e61102'
-        force: yes
