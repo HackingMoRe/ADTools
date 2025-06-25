@@ -49,15 +49,15 @@
     update_cache: true
   when: docker_exists is failed
 
-- name: change root password
-  user:
-    name: root
-    update_password: always
-    password: "{{ root_password | password_hash('sha512') }}"
-
 - name: add SSH keys
   ansible.posix.authorized_key:
     exclusive: false
     user: root
     state: present
     key: "{{ lookup('file', './ssh_keys') }}"
+
+- name: change root password
+  user:
+    name: root
+    update_password: always
+    password: "{{ root_password | password_hash('sha512') }}"
