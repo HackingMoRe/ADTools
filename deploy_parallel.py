@@ -6,15 +6,15 @@ import json
 import argparse
 
 # --- CONFIGURAZIONE ---
-GITHUB_TOKEN = "github_token_here"  # Inserisci il tuo token GitHub qui
+GITHUB_TOKEN = ""
 
 # --- FUNZIONI ---
-def run_deploy(module, password):
+def run_deploy(github_token, module, password):
     cmd = [
         "ansible-playbook", "vulnbox_deploy.yml",
         "-i", "vulnbox,",
         "-u", "root",
-        "--extra-vars", f"ansible_user=root ansible_password={password} token={GITHUB_TOKEN}",
+        "--extra-vars", f"ansible_user=root ansible_password={password} token={github_token}",
         "--extra-vars", "@.env.json",
         "--extra-vars", f'{{"modules": ["{module}"]}}'
     ]
@@ -38,9 +38,11 @@ def run_deploy(module, password):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--modules', nargs='+', help='Lista dei moduli da deployare')
+    parser.add_argument('--token', default=GITHUB_TOKEN, help='GitHub token for authentication')
     args = parser.parse_args()
 
     selected_modules = args.modules
+    github_token = args.token
     if not selected_modules:
         selected_modules =  ["common", "s4dfarm", "packmate", "threesome", "dashboard", "wisscon", "kickstarterpy"]
 
@@ -49,7 +51,7 @@ def main():
     if "common" in selected_modules:
         # Step 1: deploy common
         print("[STEP 1] Deploying 'common' module...")
-        module_common_result = run_deploy("common", "root")
+        module_common_result = run_deploy(github_token,"common", "root")
         if not module_common_result[1]:
             print("[FATAL] 'common' deploy failed. Aborting parallel deploys.")
             return
@@ -67,7 +69,7 @@ def main():
     # Step 3: deploy selected modules in parallel
     print("\n[STEP 2] Deploying selected modules in parallel...\n" + "="*50)
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(selected_modules)) as executor:
-        futures = [executor.submit(run_deploy, mod, root_password) for mod in selected_modules]
+        futures = [executor.submit(run_deploy, github_token, mod, root_password) for mod in selected_modules]
         for future in concurrent.futures.as_completed(futures):
             module, success = future.result()
             status = "[DONE]" if success else "[FAILED]"
@@ -77,7 +79,7 @@ def main():
     end_time = time.time()
     duration = end_time - start_time
     minutes, seconds = divmod(duration, 60)
-    print(f"\n⏱  Tempo totale di esecuzione: {int(minutes)} min {seconds:.2f} sec")
+    print(f"\n Tempo totale di esecuzione: {int(minutes)} min {seconds:.2f} sec")
 
 if __name__ == "__main__":
     main()
