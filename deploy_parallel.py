@@ -6,7 +6,7 @@ import json
 import argparse
 
 # --- CONFIGURAZIONE ---
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = "github_token_here"  # Inserisci il tuo token GitHub qui
 
 # --- FUNZIONI ---
 def run_deploy(module, password):
