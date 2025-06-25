@@ -35,6 +35,10 @@
       import_tasks: tasks/packmate.yml
       when: modules is defined and ("packmate" in modules or "all" in modules)
 
+    - name: Include Threesome tasks
+      import_tasks: tasks/threesome.yml
+      when: modules is defined and ("threesome" in modules or "all" in modules) 
+
     - name: Include Dashboard tasks
       import_tasks: tasks/dashboard.yml
       when: modules is defined and ("dashboard" in modules or "all" in modules)
