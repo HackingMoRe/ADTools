@@ -4,6 +4,7 @@
   vars:
     system_protocol: ructf_http
     packmate_login: unimore
+    ubuntu_version: jammy
 
   pre_tasks:
     - name: Set modules to default if not defined
