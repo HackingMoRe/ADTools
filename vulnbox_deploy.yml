@@ -15,12 +15,13 @@
     - name: Fail if any module is invalid
       fail:
         msg: "Invalid module in {{ modules }}. Allowed: all, s4dfarm, packmate, dashboard, wisscon, kickstarterpy"
-      when: modules | difference(["all", "s4dfarm", "packmate", "dashboard", "wisscon", "kickstarterpy"]) | length > 0
+      when: modules | difference(["all", "common", "s4dfarm", "packmate", "threesome","dashboard", "wisscon", "kickstarterpy"]) | length > 0
 
   tasks:
 
     - name: Install base dependencies
       import_tasks: tasks/common.yml
+      when: modules is defined and ("all" in modules or "common" in modules)
 
     - name: Include KickStarterPy tasks
       import_tasks: tasks/kickstarterpy.yml
