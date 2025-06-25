@@ -46,10 +46,10 @@ env = {
     'number_of_teams': number_of_teams,
     'teams_format': f"f'{team_ip_format}'",
     'game_interface': game_interface,
-    'root_password': secrets.token_hex(16),
-    'packmate_password': secrets.token_hex(16),
-    'ctffarm_password': secrets.token_hex(16),
-    'flag_dashboard_key': secrets.token_hex(16),
+    'root_password': secrets.token_hex(32),
+    'packmate_password': secrets.token_hex(32),
+    'ctffarm_password': secrets.token_hex(32),
+    'flag_dashboard_key': secrets.token_hex(32),
     'flag_dashboard_password': secrets.token_urlsafe(12),
 }
 
