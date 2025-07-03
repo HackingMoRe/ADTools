@@ -29,7 +29,8 @@ so these scripts may not work well for every Attack/Defence CTF.
   2. connect to the vulnbox and retrieve the name of the network interface that runs WireGuard.\
   Typically, it should be `game` or something similar;
   3. on your local machine, run `./gen_env.py` and provide the required information;
-  4. on your local machine, run `ansible-playbook vulnbox_deploy.yml -i "vulnbox," -u root --extra-vars "ansible_user=root ansible_password=<vulnbox password> token=<HackingMoRe_github_token>" --extra-vars "@.env.json" --extra-vars '{"modules": ["all"]}'` to deploy all the tools on the vulnbox.\
+  4. on your local machine, run `./deploy_parallel.py --token <github_token> --modules <list of modules>`
+    - if you want to run the ansible playbook directly  `ansible-playbook vulnbox_deploy.yml -i "vulnbox," -u root --extra-vars "ansible_user=root ansible_password=<vulnbox password> token=<HackingMoRe_github_token>" --extra-vars "@.env.json" --extra-vars '{"modules": ["all"]}'` to deploy all the tools on the vulnbox.\
     Note that the comma after `vulnbox,` is not a typo and it is needed.
     - you can also spceficate the deployment of specific modules (es. `--extra-vars '{"modules": ["s4dfarm", "packmate", "dashboard", "wisscon"]}`)
   5. connect to the vulnbox using the `root_password` in the `.env.json` file on your local machine;
