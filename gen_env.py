@@ -51,6 +51,7 @@ env = {
     'ctffarm_password': secrets.token_hex(32),
     'flag_dashboard_key': secrets.token_hex(32),
     'flag_dashboard_password': secrets.token_urlsafe(12),
+    "base_path": "/root/",
 }
 
 with open(ENV_FILE_PATH, 'w') as f:
