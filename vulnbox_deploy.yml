@@ -4,6 +4,9 @@
   vars:
     system_protocol: ructf_http
     packmate_login: unimore
+    # Ubuntu 20.04 LTS: focal
+    # Ubuntu 22.04 LTS: jammy
+    # Ubuntu 24.04 LTS: 
     ubuntu_version: jammy
 
   pre_tasks:
