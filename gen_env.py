@@ -38,8 +38,16 @@ if '{i}' not in team_ip_format:
 
 game_interface = input('Enter network interface name for the game: ')
 
+exploit_vm_endpoint = input('Enter exploit VM endpoint [<ip>:<port>]: ')
+if ':' not in exploit_vm_endpoint:
+    print('ERROR: only <ip>:<port> format is accepted')
+
+exploit_vm_pubkey = input('Enter exploit VM public key:')
+vulnbox_privkey = input('Enter vulnbox private key (provided by the exploit VM\'s script): ')
+
 # Generate secure random secrets
 env = {
+    'base_path': '/root/',
     'vulnbox_ip': vulnbox_ip,
     'gameserver_url': gameserver_url,
     'team_token': team_token,
@@ -51,7 +59,9 @@ env = {
     'ctffarm_password': secrets.token_hex(32),
     'flag_dashboard_key': secrets.token_hex(32),
     'flag_dashboard_password': secrets.token_urlsafe(12),
-    "base_path": "/root/",
+    'exploit_vm_endpoint': exploit_vm_endpoint,
+    'exploit_vm_pubkey': exploit_vm_pubkey,
+    'vulnbox_privkey': vulnbox_privkey,
 }
 
 with open(ENV_FILE_PATH, 'w') as f:
