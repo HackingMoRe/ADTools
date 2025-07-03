@@ -2,7 +2,7 @@
   ansible.builtin.git:
     repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/flag_dashboard.git'
     dest: '/root/flag_dashboard'
-    version: '34925bd71b5027755a166bec4ddb8e53184d666f'
+    version: '21acc5bcd2bd0b1dccce7c759f0149de2804b403'
     force: yes
     
 - name: install flag_dashboard configuration
@@ -12,7 +12,7 @@
 - name: Install Python dependencies from requirements.txt
   ansible.builtin.pip:
     requirements: /root/flag_dashboard/requirements.txt
-    extra_args: --break-system-packages
+    #extra_args: --break-system-packages
   tags: pip
 
 - name: add vulnbox_ip
