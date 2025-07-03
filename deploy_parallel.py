@@ -44,17 +44,22 @@ def main():
     selected_modules = args.modules
     github_token = args.token
     if not selected_modules:
-        selected_modules =  ["common", "s4dfarm", "packmate", "threesome", "dashboard", "wisscon", "kickstarterpy"]
+        selected_modules =  ["common", "kickstarterpy", "s4dfarm", "packmate", "threesome", "dashboard", "wisscon"]
 
     start_time = time.time()
+    kikstarter_flag = False
 
     if "common" in selected_modules:
+        selected_modules.remove("common")
         # Step 1: deploy common
         print("[STEP 1] Deploying 'common' module...")
         module_common_result = run_deploy(github_token,"common", "root")
         if not module_common_result[1]:
             print("[FATAL] 'common' deploy failed. Aborting parallel deploys.")
             return
+    if "kickstarterpy" in selected_modules:
+        selected_modules.remove("kickstarterpy")
+        kikstarter_flag = True
 
     # Step 2: read new root password
     try:
@@ -68,12 +73,22 @@ def main():
 
     # Step 3: deploy selected modules in parallel
     print("\n[STEP 2] Deploying selected modules in parallel...\n" + "="*50)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(selected_modules)) as executor:
-        futures = [executor.submit(run_deploy, github_token, mod, root_password) for mod in selected_modules]
-        for future in concurrent.futures.as_completed(futures):
-            module, success = future.result()
-            status = "[DONE]" if success else "[FAILED]"
-            print(f"[{module}] Deploy result: {status}")
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(selected_modules)) as executor:
+            futures = [executor.submit(run_deploy, github_token, mod, root_password) for mod in selected_modules]
+            for future in concurrent.futures.as_completed(futures):
+                module, success = future.result()
+                status = "[DONE]" if success else "[FAILED]"
+                print(f"[{module}] Deploy result: {status}")
+    except Exception as e:
+        print(f"[ERROR] An error occurred during parallel deployment: {e}")
+
+    if kikstarter_flag:
+        print("[STEP 3] Deploying 'kickstarterpy' module...")
+        module_kickstarterpy_result = run_deploy(github_token, "kickstarterpy", root_password)
+        if not module_kickstarterpy_result[1]:
+            print("[FATAL] 'kickstarterpy' deploy failed. Aborting parallel deploys.")
+            return
 
     # Profiling: tempo totale
     end_time = time.time()
