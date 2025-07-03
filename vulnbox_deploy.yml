@@ -18,7 +18,7 @@
     - name: Fail if any module is invalid
       fail:
         msg: "Invalid module in {{ modules }}. Allowed: all, s4dfarm, packmate, dashboard, wisscon, kickstarterpy"
-      when: modules | difference(["all", "common", "s4dfarm", "packmate", "threesome","dashboard", "wisscon", "kickstarterpy"]) | length > 0
+      when: modules | difference(["all", "common", "s4dfarm", "packmate", "threesome","dashboard", "wisscon", "kickstarterpy", "git_deploy"]) | length > 0
 
   tasks:
 
@@ -49,5 +49,10 @@
     - name: Include Wisscon tasks
       import_tasks: tasks/wisscon.yml
       when: modules is defined and ("wisscon" in modules or "all" in modules)
+
+    - name: Include Git deploy tasks
+      import_tasks: tasks/git_deploy.yml
+      when: modules is defined and ("git_deploy" in modules)
+
 
 
