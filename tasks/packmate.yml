@@ -50,3 +50,9 @@
     src: ./configs/rm_old_packets.sh
     dest: /root/packmate/rm_old_packets.sh
     mode: 'u+rwx'
+
+- name: copy packmate count_old_packets.sh
+  copy:
+    src: ./configs/count_old_packets.sh
+    dest: /root/packmate/count_old_packets.sh
+    mode: 'u+rwx'
