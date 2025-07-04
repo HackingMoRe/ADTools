@@ -2,7 +2,7 @@
   ansible.builtin.git:
     repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/KickStarterPy.git'
     dest: '/root/KickStarterPy'
-    version: '1210c7b9ab79b0fea43156ba1dc649564953fcef'
+    version: '2d55a1c65c35fcb8bca62ecccae05bcfe641a7e9'
     force: yes
     
 - name: Install Python dependencies from requirements.txt
