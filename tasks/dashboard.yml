@@ -2,7 +2,7 @@
   ansible.builtin.git:
     repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/flag_dashboard.git'
     dest: '/root/flag_dashboard'
-    version: '21acc5bcd2bd0b1dccce7c759f0149de2804b403'
+    version: 'a4c68f92c1a8e3f7c3fbf0115b7b36edc17be58b'
     force: yes
     
 - name: install flag_dashboard configuration
