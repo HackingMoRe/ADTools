@@ -14,7 +14,7 @@
   ansible.builtin.replace:
     path: /root/ctffarm/compose.yml
     regexp: '5137'
-    replace: '42069'
+    replace: '127.0.0.1:42069'
 
 - name: Apply patch to multiple files under basedir
   ansible.posix.patch:
