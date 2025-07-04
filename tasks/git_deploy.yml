@@ -12,7 +12,7 @@
 
 - name: receive.denyCurrentBranch ignore
   ansible.builtin.shell: |
-    git config --global receive.denyCurrentBranch ignore
+    git config --global receive.denyCurrentBranch updateInstead
   args:
     chdir: /root/KickStarterPy
  
