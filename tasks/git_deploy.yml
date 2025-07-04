@@ -1,26 +1,3 @@
-- name: download KickStarterPy.git
-  ansible.builtin.git:
-    repo: 'https://{{token}}:{{token}}@github.com/HackingMoRe/KickStarterPy.git'
-    dest: '/root/KickStarterPy'
-    version: 'eb875004c86214fb79028095213eefbf5694d2ff'
-    force: yes
-    
-- name: Install Python dependencies from requirements.txt
-  ansible.builtin.pip:
-    requirements: /root/KickStarterPy/requirements.txt
-    #extra_args: --break-system-packages
-  tags: pip
-
-- name: install kickstarterpy configuration
-  copy:
-    src: ./configs/kickstarterpy.template.env
-    dest: /root/KickStarterPy/.env
-
-- name: add base path
-  ansible.builtin.lineinfile:
-    path: /root/KickStarterPy/.env
-    search_string: "LOCAL_BASE_PATH="
-    line: "LOCAL_BASE_PATH={{ base_path }}"
 
 - name: Ensure git_deploy is executable
   ansible.builtin.file:

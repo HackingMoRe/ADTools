@@ -48,6 +48,7 @@ def main():
 
     start_time = time.time()
     kikstarter_flag = False
+    deploy_flag = False
 
     if "common" in selected_modules:
         selected_modules.remove("common")
@@ -60,6 +61,10 @@ def main():
     if "kickstarterpy" in selected_modules:
         selected_modules.remove("kickstarterpy")
         kikstarter_flag = True
+
+    if "git_deploy" in selected_modules:
+        selected_modules.remove("git_deploy")
+        deploy_flag = True
 
     
 
@@ -90,6 +95,13 @@ def main():
         module_kickstarterpy_result = run_deploy(github_token, "kickstarterpy", root_password)
         if not module_kickstarterpy_result[1]:
             print("[FATAL] 'kickstarterpy' deploy failed. Aborting parallel deploys.")
+            return
+            
+    if deploy_flag:
+        print("[STEP 4] Deploying 'git_deploy' module...")
+        module_git_deploy_result = run_deploy(github_token, "git_deploy", root_password)
+        if not module_git_deploy_result[1]:
+            print("[FATAL] 'git_deploy' deploy failed. Aborting parallel deploys.")
             return
 
     # Profiling: tempo totale
